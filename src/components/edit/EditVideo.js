@@ -1,7 +1,26 @@
 import React from "react";
+import { useParams } from "react-router-dom";
+import { useGetVideoQuery } from "../../features/api/apiSlice";
+import Error from "../ui/Error";
 import Form from "./Form";
 
 const EditVideo = () => {
+  const { videoId } = useParams();
+  const { data: video, isError, isLoading } = useGetVideoQuery(videoId);
+
+  let content = null;
+  if (isLoading) {
+    content = <div>Loading...</div>;
+  }
+
+  if (!isLoading && isError) {
+    content = <Error message="There was an error!" />;
+  }
+
+  if (!isLoading && !isError && video?.id) {
+    content = <Form video={video} />;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-5 lg:px-0">
       <div className="w-full">
@@ -13,9 +32,7 @@ const EditVideo = () => {
             Please fillup the form to edit video
           </p>
         </div>
-        <div className="mt-5 md:mt-0 md:col-span-2">
-          <Form />
-        </div>
+        <div className="mt-5 md:mt-0 md:col-span-2">{content}</div>
       </div>
     </div>
   );

@@ -5,12 +5,17 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "https://lwsredux.herokuapp.com",
   }),
+
+  tagTypes: ["Videos", "Video", "RelatedVideos"],
+
   endpoints: (builder) => ({
     getVideos: builder.query({
       query: () => "/videos2",
+      providesTags: ["Videos"],
     }),
     getVideo: builder.query({
       query: (videoId) => `/videos2/${videoId}`,
+      providesTags: (result, error, arg) => [{ type: "Video", id: arg }],
     }),
     getRelatedVideos: builder.query({
       query: ({ id, title }) => {
@@ -19,9 +24,39 @@ export const apiSlice = createApi({
         const queryString = `/videos2?${likes.join("&")}&_limit=4`;
         return queryString;
       },
+      providesTags: (result, error, arg) => [
+        { type: "RelatedVideos", id: arg.id },
+      ],
+    }),
+
+    addVideo: builder.mutation({
+      query: (data) => ({
+        url: `/videos2`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Videos"],
+    }),
+
+    editVideo: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/videos2/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        "Videos",
+        { type: "Video", id: arg.id },
+        { type: "RelatedVideos", id: arg.id },
+      ],
     }),
   }),
 });
 
-export const { useGetVideosQuery, useGetVideoQuery, useGetRelatedVideosQuery } =
-  apiSlice;
+export const {
+  useGetVideosQuery,
+  useGetVideoQuery,
+  useGetRelatedVideosQuery,
+  useAddVideoMutation,
+  useEditVideoMutation,
+} = apiSlice;
